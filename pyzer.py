@@ -72,4 +72,4 @@ context = daemon.DaemonContext(
     )
 
 with context:
-	run(server='tornado', host='0.0.0.0', port=9998)
+	run(server='tornado', host='127.0.0.1', port=9998)
