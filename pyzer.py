@@ -1,5 +1,8 @@
+#gevent up in this
+from gevent import monkey; monkey.patch_all()
+
 #imports
-from bottle import route, run, request, response
+from bottle import route, run, request, response, abort
 import urllib
 import Image
 import cStringIO
@@ -12,6 +15,8 @@ redis_cache = redis.Redis(host='localhost', port=6379, db=711)
 #routes and classes
 @route('/resize')
 def resize():
+	if request.headers.get('If-Modified-Since') == 'Wed, 11 Jan 1984 08:00:00 GMT':
+		abort(304, "Not Modified")
 	if request.GET.get('src'):
 		image_url = request.GET.get('src')
 	else:
@@ -61,8 +66,10 @@ def resize():
 		redis_cache.set(r_image_id, image_return)
 
 	response.content_type = 'image/jpg'
+	response.set_header('Cache-Control', 'max-age=31536000')
+	response.set_header('Last-Modified', 'Wed, 11 Jan 1984 08:00:00 GMT')
 	return image_return
 	
 
 #let's run this
-run(host='localhost', port=9999, reloader=True)
+run(server='gunicorn')
